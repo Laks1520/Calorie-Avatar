@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Calorie Avatar (Editable)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 20px; }
+        .header h1 { font-size: 2.2em; margin-bottom: 6px; text-shadow: 2px 2px 4px rgba(0,0,0,0.25); }
+        .card { background: white; border-radius: 16px; padding: 22px; margin-bottom: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); position: relative; }
+        .card h2 { color: #333; margin-bottom: 12px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 12px; }
+        .stat-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px; border-radius: 10px; text-align: center; }
+        .stat-number { font-size: 1.6em; font-weight: 700; }
+        .grid-2col { display: grid; grid-template-columns: 1.05fr 1fr; gap: 18px; margin-bottom: 12px; }
+        .avatar-display { background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%); color: white; }
+        .avatar-container { width: 220px; height: 280px; margin: 12px auto; position: relative; transition: transform 0.5s; }
+        .avatar-container.avatar-slim { transform: scaleX(0.82); }
+        .avatar-container.avatar-fit { transform: scaleX(1); }
+        .avatar-container.avatar-average { transform: scaleX(1.18); }
+        .avatar-container.avatar-heavy { transform: scaleX(1.36); }
+        .avatar-figure { font-size: 9.5em; line-height: 0.9; }
+        .avatar-status { margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.08); border-radius: 10px; }
+        .progress-ring-container { position: relative; width: 240px; height: 240px; margin: 8px auto; }
+        .progress-ring { transform: rotate(-90deg); }
+        .progress-ring-circle { transition: stroke-dashoffset 0.5s; fill: transparent; }
+        .progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.6em; font-weight: 700; color: white; }
+        .upload-section { text-align: center; padding: 18px; border: 3px dashed #667eea; border-radius: 12px; cursor: pointer; transition: all 0.25s; }
+        .upload-section:hover { background: rgba(248,249,255,0.6); }
+        .food-item { background: #f8f9ff; padding: 14px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid #667eea; }
+        .food-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .food-name { font-size: 1.1em; font-weight: 700; color: #333; }
+        .nutrition-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 8px 0; }
+        .nutrition-item { text-align: center; padding: 8px; background: white; border-radius: 8px; }
+        .nutrition-value { font-size: 1.05em; font-weight: 700; color: #444; }
+        .swap-card { background: #fff8e1; padding: 12px; border-radius: 10px; margin-top: 10px; border-left: 5px solid #ffb300; }
+        .swap-title { font-weight: 700; color: #6b4f00; margin-bottom: 6px; }
+        .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 10px 20px; font-size: 0.95em; border-radius: 40px; cursor: pointer; font-weight: 600; }
+        .btn:active { transform: translateY(1px); }
+        .hidden { display: none; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; }
+        .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); background: white; border-radius: 14px; padding: 22px; max-width: 720px; width: 94%; z-index: 1001; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+        .modal-header { text-align: left; margin-bottom: 10px; }
+        .modal-icon { font-size: 2.6em; margin-bottom: 6px; }
+        .modal-title { font-size: 1.2em; color: #333; margin-bottom: 6px; }
+        .modal-content { font-size: 1em; color: #444; margin-bottom: 12px; }
+        .swap-comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0; }
+        .swap-item { padding: 12px; border-radius: 10px; text-align: center; }
+        .swap-old { background: #ffebee; border: 1px solid #ef9a9a; }
+        .swap-new { background: #e8f5e9; border: 1px solid #a5d6a7; }
+        .savings-badge { background: linear-gradient(135deg, #66bb6a 0%, #43a047 100%); color: white; padding: 10px; border-radius: 10px; margin: 12px 0; font-weight: 700; }
+        .streak-badge { position: absolute; top: 16px; right: 16px; background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white; padding: 8px 16px; border-radius: 40px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .confetti { position: fixed; width: 10px; height: 10px; background: #f0f; animation: confetti-fall 3s linear forwards; }
+        @keyframes confetti-fall { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
+        @media (max-width: 980px) { .grid-2col { grid-template-columns: 1fr; } .avatar-container { width:160px; height:200px;} }
+
+        /* Editable DB section */
+        .db-panel { background: #ffffff; padding: 12px; border-radius: 12px; margin-top: 10px; }
+        .inline-input { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 8px; }
+        .row { display:flex; gap:8px; }
+        .col { flex:1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏋️ Your Health Dashboard — Editable</h1>
+            <p style="opacity:0.9;">Upload meal photos or add entries manually. Totals combine both sources.</p>
+        </div>
+
+        <div class="card">
+            <div class="streak-badge" id="streakBadge">🔥 <span id="streakCount">0</span> Day Streak</div>
+            <h2>📊 Your Health Stats</h2>
+            <div class="stats-grid">
+                <div class="stat-box"><div class="stat-number" id="bmiValue">--</div><div style="font-size:0.85em;">BMI</div></div>
+                <div class="stat-box"><div class="stat-number" id="bmiCategory">--</div><div style="font-size:0.85em;">Category</div></div>
+                <div class="stat-box"><div class="stat-number" id="targetCalories">--</div><div style="font-size:0.85em;">Daily Target</div></div>
+                <div class="stat-box"><div class="stat-number" id="idealWeight">--</div><div style="font-size:0.85em;">Ideal Weight (kg)</div></div>
+            </div>
+        </div>
+
+        <div class="grid-2col">
+            <div class="card avatar-display">
+                <h2 style="color: white;">👤 Your Avatar</h2>
+                <div class="progress-ring-container">
+                    <svg class="progress-ring" width="240" height="240">
+                        <circle class="progress-ring-circle" stroke="rgba(255,255,255,0.2)" stroke-width="14" r="100" cx="120" cy="120"/>
+                        <circle id="progressCircle" class="progress-ring-circle" stroke="white" stroke-width="14" r="100" cx="120" cy="120" stroke-dasharray="628.32" stroke-dashoffset="628.32"/>
+                    </svg>
+                    <div class="progress-text" id="progressPercent">0%</div>
+                </div>
+                <div class="avatar-container" id="avatarContainer"><div class="avatar-figure" id="avatarFigure">🧍</div></div>
+                <div class="avatar-status"><h3 id="avatarMessage">Loading...</h3><p id="caloriesRemaining" style="margin-top:8px;">-- calories remaining</p></div>
+            </div>
+
+            <div class="card">
+                <h2>💡 Your Daily Progress</h2>
+                <div id="recommendationsContent"></div>
+                <div id="milestoneContainer" class="hidden" style="text-align:center; margin-top:12px;"><div style="display:inline-block; background:linear-gradient(135deg,#ffd700 0%,#ffed4e 100%); padding:10px 18px; border-radius:40px; font-weight:700;">🎉 <span id="milestoneText">Milestone!</span></div></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🏃 Recommended Activities</h2>
+            <div id="activityList"></div>
+        </div>
+
+        <div class="card">
+            <h2>🍽️ Meal Analysis — Image + Manual Entry</h2>
+
+            <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+                <div style="flex:1; min-width:260px;">
+                    <div class="upload-section" onclick="document.getElementById('fileInput').click()">
+                        <div style="font-size:2.4em; margin-bottom:8px;">📸</div>
+                        <div><strong>Upload Meal Photo</strong></div>
+                        <div style="font-size:0.9em; color:#666; margin-top:6px;">Click to select image</div>
+                        <input type="file" id="fileInput" style="display:none;" accept="image/*">
+                    </div>
+
+                    <div id="foodPreview" class="hidden" style="text-align:center; margin-top:12px;">
+                        <img id="previewImage" style="max-width:100%; max-height:280px; border-radius:12px;" alt="preview">
+                        <br><br>
+                        <button class="btn" onclick="analyzeFood()">🔍 Analyze Food (Image)</button>
+                    </div>
+                </div>
+
+                <div style="flex:1; min-width:300px;">
+                    <div style="background:#f7fbff; padding:12px; border-radius:10px;">
+                        <h3 style="margin-bottom:8px;">Manual Entry</h3>
+                        <div class="row">
+                            <input class="inline-input col" id="manualFoodName" placeholder="Food name (e.g. idli)">
+                            <input class="inline-input" id="manualServing" placeholder="Serving (e.g. 1 plate)">
+                        </div>
+                        <div class="row">
+                            <input class="inline-input col" id="manualCalories" type="number" placeholder="Calories">
+                            <input class="inline-input" id="manualProtein" type="number" placeholder="Protein (g)">
+                        </div>
+                        <div class="row">
+                            <input class="inline-input col" id="manualCarbs" type="number" placeholder="Carbs (g)">
+                            <input class="inline-input" id="manualFat" type="number" placeholder="Fat (g)">
+                        </div>
+                        <div style="display:flex; gap:8px; margin-top:8px;">
+                            <button class="btn" onclick="addManualEntry()">➕ Add Entry</button>
+                            <button class="btn" style="background:linear-gradient(135deg,#43a047 0%,#66bb6a 100%);" onclick="quickAddExample()">Quick Add: Indian Thali</button>
+                        </div>
+                    </div>
+
+                    <div id="manualList" style="margin-top:10px;"></div>
+                </div>
+            </div>
+
+            <div id="dailyTotal" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px; border-radius: 12px; margin-bottom:12px; text-align:center; display:none;">
+                <div style="font-size:2em; font-weight:700;" id="totalDailyCal">0</div>
+                <div style="font-size:0.95em; opacity:0.95; margin-top:6px;" id="calorieStatus">Total Calories Today</div>
+            </div>
+
+            <div id="foodResults"></div>
+        </div>
+
+        <div style="text-align:center; margin-top:12px;">
+            <button class="btn" onclick="openDBPanel()">⚙️ Edit Food DB & Swaps</button>
+        </div>
+
+        <!-- DB Panel Modal -->
+        <div class="modal-overlay" id="dbModal">
+            <div class="modal">
+                <div class="modal-header"><div class="modal-icon">🧾</div><div class="modal-title">Editable Food Database & Swaps</div></div>
+                <div class="modal-content">Add new foods or swap suggestions here. These are stored locally (localStorage) and editable.</div>
+                <div class="db-panel">
+                    <h4>➕ Add / Edit Food (manual lookup)</h4>
+                    <input id="dbFoodName" class="inline-input" placeholder="Food name">
+                    <div class="row">
+                        <input id="dbCalories" class="inline-input col" placeholder="Calories">
+                        <input id="dbProtein" class="inline-input" placeholder="Protein (g)">
+                    </div>
+                    <div class="row">
+                        <input id="dbCarbs" class="inline-input col" placeholder="Carbs (g)">
+                        <input id="dbFat" class="inline-input" placeholder="Fat (g)">
+                    </div>
+                    <div style="display:flex; gap:8px; margin-top:8px;">
+                        <button class="btn" onclick="saveFoodToDB()">Save Food</button>
+                        <button class="btn" style="background:linear-gradient(135deg,#ff7043 0%,#ff8a65 100%);" onclick="clearFoodDB()">Clear DB</button>
+                    </div>
+                </div>
+
+                <div class="db-panel" style="margin-top:12px;">
+                    <h4>🔁 Add / Edit Swap</h4>
+                    <input id="swapOld" class="inline-input" placeholder="Old food name (to replace)">
+                    <input id="swapNew" class="inline-input" placeholder="Suggested alternative (name)">
+                    <div class="row">
+                        <input id="swapSaveCal" class="inline-input col" placeholder="Calories saved (number)">
+                        <input id="swapReason" class="inline-input" placeholder="Reason / Note">
+                    </div>
+                    <div style="display:flex; gap:8px; margin-top:8px;">
+                        <button class="btn" onclick="saveSwapToDB()">Save Swap</button>
+                        <button class="btn" style="background:linear-gradient(135deg,#9e9d24 0%,#d4e157 100%);" onclick="clearSwapsDB()">Clear Swaps</button>
+                    </div>
+                </div>
+
+                <div style="margin-top:12px; text-align:right;"><button class="btn" onclick="closeDBPanel()">Done</button></div>
+            </div>
+        </div>
+
+        <!-- Motivation Modal -->
+        <div class="modal-overlay" id="motivationModal">
+            <div class="modal">
+                <div class="modal-header"><div class="modal-icon" id="modalIcon">🎉</div><div class="modal-title" id="modalTitle">Great Job!</div></div>
+                <div class="modal-content" id="modalContent">You're doing amazing! Keep up the good work!</div>
+                <div style="text-align:right;"><button class="btn" onclick="closeModal()">Continue</button></div>
+            </div>
+        </div>
+
+        <!-- Swap Modal -->
+        <div class="modal-overlay" id="swapModal">
+            <div class="modal">
+                <div class="modal-header"><div class="modal-icon">💡</div><div class="modal-title">Healthier Alternative Detected!</div></div>
+                <div class="swap-comparison">
+                    <div class="swap-item swap-old"><div style="font-size:1.2em; font-weight:700;" id="oldFoodName">Pizza</div><div style="font-size:1.1em;" id="oldCalories">285 cal</div></div>
+                    <div class="swap-item swap-new"><div style="font-size:1.2em; font-weight:700;" id="newFoodName">Whole Wheat</div><div style="font-size:1.1em;" id="newCalories">200 cal</div></div>
+                </div>
+                <div class="savings-badge">💰 Save <span id="caloriesSaved">85</span> cal</div>
+                <div class="modal-content" id="swapReason" style="background:#f8f9ff; padding:10px; border-radius:8px;">More fiber, better blood sugar control</div>
+                <div style="text-align:right;"><button class="btn" onclick="closeSwapModal()">Got it</button></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000';
+        let selectedFile = null; let userProfile = null; let profileResults = null; let dailyCalories = 0; let mealsToday = 0; let streak = 0;
+
+        // Local editable DBs (stored in localStorage)
+        function loadDBs() {
+            const foods = JSON.parse(localStorage.getItem('foodDB') || '[]');
+            const swaps = JSON.parse(localStorage.getItem('swapsDB') || '[]');
+            return { foods, swaps };
+        }
+        function saveDBs(foods, swaps) { localStorage.setItem('foodDB', JSON.stringify(foods)); localStorage.setItem('swapsDB', JSON.stringify(swaps)); }
+
+        window.onload = function() {
+            const stored = localStorage.getItem('userProfile');
+            const results = localStorage.getItem('profileResults');
+            if (!stored || !results) {
+                // default demo profile for presentation
+                userProfile = { gender: 'male' };
+                profileResults = { bmi: {bmi:'23.4', category:'Normal', health_risk:'Low'}, energy:{target_calories:2000, timeline:'Maintain'}, ideal_weight:{ideal:65}, avatar:{body_type:'fit', message:'Healthy'}, recommendations: ['Eat more greens','Stay hydrated'], activities:[{activity:'30 min walk', calories:200, frequency:'daily'}], weight_difference:0 };
+                localStorage.setItem('userProfile', JSON.stringify(userProfile));
+                localStorage.setItem('profileResults', JSON.stringify(profileResults));
+            } else {
+                userProfile = JSON.parse(stored);
+                profileResults = JSON.parse(results);
+            }
+            loadStreak(); displayProfileResults(); renderManualList(); renderActivityList();
+        };
+
+        function loadStreak() {
+            const lastDate = localStorage.getItem('lastLoginDate');
+            const today = new Date().toDateString();
+            if (lastDate === today) { streak = parseInt(localStorage.getItem('streak') || '1'); }
+            else if (lastDate === new Date(Date.now() - 86400000).toDateString()) { streak = parseInt(localStorage.getItem('streak') || '0') + 1; }
+            else { streak = 1; }
+            localStorage.setItem('streak', streak); localStorage.setItem('lastLoginDate', today); document.getElementById('streakCount').textContent = streak;
+            if ([3,7,14,30].includes(streak)) setTimeout(()=> showMilestone(`${streak} Day Streak! You're on fire! 🔥`),800);
+        }
+
+        function displayProfileResults() {
+            document.getElementById('bmiValue').textContent = profileResults.bmi.bmi;
+            document.getElementById('bmiCategory').textContent = profileResults.bmi.category;
+            document.getElementById('targetCalories').textContent = profileResults.energy.target_calories;
+            document.getElementById('idealWeight').textContent = profileResults.ideal_weight.ideal;
+            updateAvatar(profileResults.avatar);
+            updateProgressRing(0, profileResults.energy.target_calories);
+            document.getElementById('recommendationsContent').innerHTML = `<div style="background:#f8f9ff;padding:12px;border-radius:10px;margin-bottom:8px;"><strong>🎯 Goal:</strong> ${profileResults.energy.timeline}<br><strong>⚖️ Diff:</strong> ${profileResults.weight_difference} kg</div><ul style="margin-left:18px;">${profileResults.recommendations.map(r=>`<li>${r}</li>`).join('')}</ul>`;
+        }
+
+        function updateAvatar(avatarData) {
+            const container = document.getElementById('avatarContainer');
+            const figure = document.getElementById('avatarFigure');
+            const message = document.getElementById('avatarMessage');
+            container.className = 'avatar-container avatar-' + (avatarData.body_type || 'fit');
+            figure.textContent = userProfile.gender === 'male' ? '🧍‍♂️' : '🧍‍♀️';
+            message.textContent = avatarData.message || '';
+        }
+
+        function updateProgressRing(current, target) {
+            const percent = Math.min(100, Math.round((current / target) * 100));
+            const circumference = 2 * Math.PI * 100; const offset = circumference - (percent/100)*circumference;
+            document.getElementById('progressCircle').style.strokeDashoffset = offset;
+            document.getElementById('progressPercent').textContent = percent + '%';
+            document.getElementById('caloriesRemaining').textContent = (target-current>0)?`${target-current} calories remaining`:`${Math.abs(target-current)} over target`;
+        }
+
+        // Image upload handling
+        document.getElementById('fileInput').onchange = function(e){ const file = e.target.files[0]; if(!file) return; selectedFile = file; const reader = new FileReader(); reader.onload = (ev)=>{ document.getElementById('previewImage').src = ev.target.result; document.getElementById('foodPreview').classList.remove('hidden'); }; reader.readAsDataURL(file); };
+
+        async function analyzeFood(){ if(!selectedFile) return; const formData = new FormData(); formData.append('file', selectedFile);
+            try{
+                const response = await fetch(`${API_URL}/predict`, { method:'POST', body: formData });
+                if(!response.ok) throw new Error('Analysis failed');
+                const data = await response.json();
+                // incorporate into totals
+                addMealFromPrediction(data);
+            } catch(err){ alert('Error analyzing food. Make sure backend is running! (Or use manual entry)'); console.error(err); }
+        }
+
+        function addMealFromPrediction(data){ dailyCalories += data.total_nutrition.calories; mealsToday++; displayFoodResults(data); updateDailyTotal(); updateDailyAvatar(); setTimeout(()=> showMotivation(data.total_nutrition.calories),400); if(data.predictions[0]?.swap) setTimeout(()=> showSwapModal(data.predictions[0]),900); }
+
+        function displayFoodResults(data){ const div = document.getElementById('foodResults'); if(!data.predictions||data.predictions.length===0){ div.innerHTML = '<p style="text-align:center;color:#888;padding:12px;">No food detected. Try a clearer image!</p>' + div.innerHTML; return; }
+            const now = new Date(); const timeStr = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+            let html = `<div style="background:white;border-radius:12px;padding:14px;margin-top:12px;border:1px solid #e6e9f2;">`;
+            html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><h3 style="color:#333;margin:0;">📸 Meal #${mealsToday} - ${timeStr}</h3><button onclick="removeMeal(this, ${data.total_nutrition.calories})" style="background:#ff6b6b;color:white;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;">Remove</button></div>`;
+            html+=`<div class="stats-grid"><div class="stat-box"><div class="stat-number">${data.total_nutrition.calories}</div><div style="font-size:0.85em;">Calories</div></div><div class="stat-box"><div class="stat-number">${data.total_nutrition.protein}g</div><div style="font-size:0.85em;">Protein</div></div><div class="stat-box"><div class="stat-number">${data.total_nutrition.carbs}g</div><div style="font-size:0.85em;">Carbs</div></div><div class="stat-box"><div class="stat-number">${data.total_nutrition.fat}g</div><div style="font-size:0.85em;">Fat</div></div></div>`;
+            data.predictions.forEach(item=>{ html+=`<div class="food-item"><div class="food-header"><div class="food-name">${item.food}</div><div style="color:#888;">${Math.round(item.confidence*100)}%</div></div><div class="nutrition-grid"><div class="nutrition-item"><div class="nutrition-value">${item.nutrition.calories}</div><div class="nutrition-label">Calories</div></div><div class="nutrition-item"><div class="nutrition-value">${item.nutrition.protein}g</div><div class="nutrition-label">Protein</div></div><div class="nutrition-item"><div class="nutrition-value">${item.nutrition.carbs}g</div><div class="nutrition-label">Carbs</div></div><div class="nutrition-item"><div class="nutrition-value">${item.nutrition.fat}g</div><div class="nutrition-label">Fat</div></div></div><div style="margin-top:8px;color:#666;font-size:0.9em;">📏 Serving: ${item.nutrition.serving}</div></div>`; });
+            html+=`</div>`; div.innerHTML = html + div.innerHTML; }
+
+        function removeMeal(button, calories){ button.closest('div').remove(); dailyCalories -= calories; mealsToday--; updateDailyTotal(); updateDailyAvatar(); if(dailyCalories<=0){ document.getElementById('dailyTotal').style.display='none'; dailyCalories=0; mealsToday=0; } }
+
+        // Manual entries
+        function addManualEntry(){ const name = document.getElementById('manualFoodName').value.trim(); if(!name) { alert('Enter food name'); return; }
+            const serving = document.getElementById('manualServing').value || '1 serving'; const c = Number(document.getElementById('manualCalories').value) || 0; const p = Number(document.getElementById('manualProtein').value) || 0; const carbs = Number(document.getElementById('manualCarbs').value) || 0; const f = Number(document.getElementById('manualFat').value) || 0;
+            const entry = { food:name, nutrition:{calories:c, protein:p, carbs:carbs, fat:f, serving }};
+            // add to manual list UI
+            prependManualEntry(entry);
+            // update totals
+            dailyCalories += c; mealsToday++; updateDailyTotal(); updateDailyAvatar(); setTimeout(()=> showMotivation(c),300);
+            // check swaps DB for suggestion
+            const { swaps } = loadDBs(); const found = swaps.find(s=> s.old.toLowerCase() === name.toLowerCase()); if(found) setTimeout(()=> showSwapFromDB(found, entry),700);
+            // clear inputs
+            document.getElementById('manualFoodName').value=''; document.getElementById('manualServing').value=''; document.getElementById('manualCalories').value=''; document.getElementById('manualProtein').value=''; document.getElementById('manualCarbs').value=''; document.getElementById('manualFat').value='';
+        }
+
+        function prependManualEntry(entry){ const div = document.getElementById('manualList'); const html = `<div class="food-item"><div class="food-header"><div class="food-name">${entry.food}</div><div style="color:#888;">Manual</div></div><div class="nutrition-grid"><div class="nutrition-item"><div class="nutrition-value">${entry.nutrition.calories}</div><div class="nutrition-label">Calories</div></div><div class="nutrition-item"><div class="nutrition-value">${entry.nutrition.protein}g</div><div class="nutrition-label">Protein</div></div><div class="nutrition-item"><div class="nutrition-value">${entry.nutrition.carbs}g</div><div class="nutrition-label">Carbs</div></div><div class="nutrition-item"><div class="nutrition-value">${entry.nutrition.fat}g</div><div class="nutrition-label">Fat</div></div></div><div style="margin-top:6px;color:#666;">📏 Serving: ${entry.nutrition.serving} <button style="float:right;background:#ff6b6b;color:white;border:none;padding:4px 8px;border-radius:6px;cursor:pointer;" onclick="removeManualEntry(this, ${entry.nutrition.calories})">Remove</button></div></div>`; div.innerHTML = html + div.innerHTML; }
+        function removeManualEntry(btn, calories){ btn.closest('.food-item').remove(); dailyCalories -= calories; mealsToday--; updateDailyTotal(); updateDailyAvatar(); }
+
+        function quickAddExample(){ document.getElementById('manualFoodName').value='Indian Thali'; document.getElementById('manualServing').value='1 plate'; document.getElementById('manualCalories').value='600'; document.getElementById('manualProtein').value='20'; document.getElementById('manualCarbs').value='80'; document.getElementById('manualFat').value='18'; }
+
+        function updateDailyTotal(){ document.getElementById('dailyTotal').style.display='block'; document.getElementById('totalDailyCal').textContent = dailyCalories; const target = profileResults.energy.target_calories; const rem = target - dailyCalories; let status = ''; if(rem>500) status = `✅ ${rem} calories left - You're doing great!`; else if(rem>0) status = `⚡ ${rem} calories left - Almost there!`; else status = `⚠️ ${Math.abs(rem)} calories over - Consider activity!` ; document.getElementById('calorieStatus').textContent = status; updateProgressRing(dailyCalories, target); }
+
+        async function updateDailyAvatar(){ try{ const response = await fetch(`${API_URL}/avatar/update`, { method:'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ profile: userProfile, daily_log: { total_calories: dailyCalories } }) }); if(response.ok){ const data = await response.json(); updateAvatar(data.avatar); } }catch(e){ console.warn('avatar API not available, skipping avatar update'); } }
+
+        function showMotivation(calories){ const messages = { low:[{icon:'🎯',title:'Light Choice!',message:'Great pick! Keeps you on track.'}], medium:[{icon:'👍',title:'Balanced Meal!',message:'Good balance of nutrition.'}], high:[{icon:'💪',title:'Big Meal!',message:'Consider light activity later.'}] }; let cat = calories<200?'low':calories<500?'medium':'high'; let msg = messages[cat][Math.floor(Math.random()*messages[cat].length)]; document.getElementById('modalIcon').textContent = msg.icon; document.getElementById('modalTitle').textContent = msg.title; document.getElementById('modalContent').textContent = msg.message; document.getElementById('motivationModal').style.display='block'; if(cat==='low') createConfetti(); }
+        function closeModal(){ document.getElementById('motivationModal').style.display='none'; }
+
+        function showSwapModal(pred){ if(!pred.swap) return; document.getElementById('oldFoodName').textContent = pred.food; document.getElementById('oldCalories').textContent = pred.nutrition.calories + ' cal'; document.getElementById('newFoodName').textContent = pred.swap.swap; document.getElementById('newCalories').textContent = (pred.nutrition.calories - pred.swap.calorie_save) + ' cal'; document.getElementById('caloriesSaved').textContent = pred.swap.calorie_save; document.getElementById('swapReason').textContent = pred.swap.reason + ' — ' + pred.swap.health_benefit; document.getElementById('swapModal').style.display='block'; }
+        function closeSwapModal(){ document.getElementById('swapModal').style.display='none'; }
+
+        function showSwapFromDB(swapObj, entry){ document.getElementById('oldFoodName').textContent = entry.food; document.getElementById('oldCalories').textContent = entry.nutrition.calories + ' cal'; document.getElementById('newFoodName').textContent = swapObj.new; document.getElementById('newCalories').textContent = Math.max(0, entry.nutrition.calories - Number(swapObj.save)) + ' cal'; document.getElementById('caloriesSaved').textContent = swapObj.save; document.getElementById('swapReason').textContent = swapObj.reason || ''; document.getElementById('swapModal').style.display='block'; }
+
+        function createConfetti(){ const colors=['#ff6b6b','#4ecdc4','#45b7d1','#f7b731','#5f27cd','#00d2d3']; for(let i=0;i<40;i++){ setTimeout(()=>{ const c = document.createElement('div'); c.className='confetti'; c.style.left = Math.random()*100+'%'; c.style.background = colors[Math.floor(Math.random()*colors.length)]; document.body.appendChild(c); setTimeout(()=>c.remove(),3000); }, i*25); } }
+
+        // Editable DB functions
+        function openDBPanel(){ document.getElementById('dbModal').style.display='block'; }
+        function closeDBPanel(){ document.getElementById('dbModal').style.display='none'; }
+
+        function saveFoodToDB(){ const name = document.getElementById('dbFoodName').value.trim(); if(!name) { alert('Enter food name'); return; } const cal = Number(document.getElementById('dbCalories').value)||0; const p = Number(document.getElementById('dbProtein').value)||0; const carbs = Number(document.getElementById('dbCarbs').value)||0; const f = Number(document.getElementById('dbFat').value)||0; const { foods, swaps } = loadDBs(); const idx = foods.findIndex(fx=> fx.name.toLowerCase()===name.toLowerCase()); const payload = { name, calories:cal, protein:p, carbs:carbs, fat:f }; if(idx>-1) foods[idx]=payload; else foods.push(payload); saveDBs(foods, swaps); alert('Saved to food DB'); document.getElementById('dbFoodName').value=''; document.getElementById('dbCalories').value=''; document.getElementById('dbProtein').value=''; document.getElementById('dbCarbs').value=''; document.getElementById('dbFat').value=''; }
+        function saveSwapToDB(){ const old = document.getElementById('swapOld').value.trim(); const neu = document.getElementById('swapNew').value.trim(); const save = Number(document.getElementById('swapSaveCal').value)||0; const reason = document.getElementById('swapReason').value || document.getElementById('swapReason').placeholder || ''; if(!old||!neu){ alert('Provide both old and new food names'); return; } const { foods, swaps } = loadDBs(); const idx = swaps.findIndex(s=> s.old.toLowerCase()===old.toLowerCase()); const payload = { old, new:neu, save, reason }; if(idx>-1) swaps[idx]=payload; else swaps.push(payload); saveDBs(foods, swaps); alert('Saved swap'); document.getElementById('swapOld').value=''; document.getElementById('swapNew').value=''; document.getElementById('swapSaveCal').value=''; document.getElementById('swapReason').value=''; }
+        function clearFoodDB(){ if(confirm('Clear all foods?')){ const { foods, swaps } = loadDBs(); saveDBs([], swaps); alert('Cleared food DB'); } }
+        function clearSwapsDB(){ if(confirm('Clear all swaps?')){ const { foods, swaps } = loadDBs(); saveDBs(foods, []); alert('Cleared swaps DB'); } }
+
+        function renderManualList(){ const { foods } = loadDBs(); const container = document.getElementById('manualList'); container.innerHTML=''; if(foods.length===0) { container.innerHTML='<div style="color:#666; padding:8px;">No foods in DB. Use "Edit Food DB" to add manual lookup items.</div>'; return; } foods.forEach(f=>{ const html = `<div class="food-item"><div class="food-header"><div class="food-name">${f.name}</div><div style="color:#888;">DB</div></div><div class="nutrition-grid"><div class="nutrition-item"><div class="nutrition-value">${f.calories}</div><div class="nutrition-label">Calories</div></div><div class="nutrition-item"><div class="nutrition-value">${f.protein}g</div><div class="nutrition-label">Protein</div></div><div class="nutrition-item"><div class="nutrition-value">${f.carbs}g</div><div class="nutrition-label">Carbs</div></div><div class="nutrition-item"><div class="nutrition-value">${f.fat}g</div><div class="nutrition-label">Fat</div></div></div></div>`; container.innerHTML += html; }); }
+
+        // Activity list renderer
+        function renderActivityList(){ document.getElementById('activityList').innerHTML = profileResults.activities.map(act=>`<div style="padding:10px;background:#f8f9ff;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;"><div><strong>${act.activity}</strong><br><small style="color:#666">${act.frequency}</small></div><div style="font-weight:700;color:#764ba2">${act.calories} cal</div></div>`).join(''); }
+
+        // Small helper: if user wants to add DB item by name, a quick lookup
+        function findFoodInDB(name){ const { foods } = loadDBs(); return foods.find(f=> f.name.toLowerCase()===name.toLowerCase()); }
+
+        // Expose some functions to window for onclick in HTML
+        window.openDBPanel = openDBPanel; window.closeDBPanel = closeDBPanel; window.saveFoodToDB = saveFoodToDB; window.saveSwapToDB = saveSwapToDB; window.clearFoodDB = clearFoodDB; window.clearSwapsDB = clearSwapsDB; window.addManualEntry = addManualEntry; window.quickAddExample = quickAddExample; window.removeManualEntry = removeManualEntry; window.closeModal = closeModal; window.closeSwapModal = closeSwapModal; window.analyzeFood = analyzeFood; window.openDBPanel = openDBPanel;
+
+    </script>
+</body>
+</html>

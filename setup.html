@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Setup - Calorie Avatar</title>
+    <style>
+        /* Reset & base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #f0f4f8;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .page-container {
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            color: #0077cc;
+            margin-bottom: 10px;
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            color: #555;
+        }
+
+        /* Card */
+        .card {
+            background: #fff;
+            padding: 30px 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            color: #0077cc;
+            text-align: center;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="number"]:focus, select:focus {
+            border-color: #00aaff;
+            box-shadow: 0 0 5px rgba(0,170,255,0.3);
+        }
+
+        /* Gender Selection */
+        .gender-select {
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+        }
+
+        .gender-card {
+            flex: 1;
+            background: #f5f5f5;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .gender-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .gender-card.active {
+            background: #00aaff;
+            color: #fff;
+            border-color: #0077cc;
+        }
+
+        .gender-avatar {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 10px auto;
+            border-radius: 50%;
+            background-color: #ccc;
+        }
+
+        .male-avatar {
+            background-image: url('https://cdn-icons-png.flaticon.com/512/4333/4333609.png');
+            background-size: cover;
+        }
+
+        .female-avatar {
+            background-image: url('https://cdn-icons-png.flaticon.com/512/4333/4333617.png');
+            background-size: cover;
+        }
+
+        .gender-label {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        /* Button */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px 0;
+            background: #00aaff;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            background: #0077cc;
+            transform: scale(1.05);
+        }
+
+        /* Responsive */
+        @media(max-width: 480px){
+            .page-container {
+                padding: 15px;
+            }
+
+            .page-header h1 {
+                font-size: 2rem;
+            }
+
+            .card h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="page-header">
+            <h1>📋 Create Your Profile</h1>
+            <p>Tell us about yourself to get personalized recommendations</p>
+        </div>
+
+        <div class="card">
+            <h2>Personal Information</h2>
+            
+            <div class="form-group">
+                <label>Select Your Gender</label>
+                <div class="gender-select">
+                    <div class="gender-card active" data-gender="male" onclick="selectGender('male')">
+                        <div class="gender-avatar male-avatar"></div>
+                        <div class="gender-label">👨 Male</div>
+                    </div>
+                    <div class="gender-card" data-gender="female" onclick="selectGender('female')">
+                        <div class="gender-avatar female-avatar"></div>
+                        <div class="gender-label">👩 Female</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Age (years)</label>
+                <input type="number" id="age" min="15" max="100" value="25" placeholder="e.g., 25">
+            </div>
+
+            <div class="form-group">
+                <label>Height (cm)</label>
+                <input type="number" id="height" min="120" max="250" value="170" placeholder="e.g., 170">
+            </div>
+
+            <div class="form-group">
+                <label>Weight (kg)</label>
+                <input type="number" id="weight" min="30" max="200" value="70" placeholder="e.g., 70">
+            </div>
+
+            <div class="form-group">
+                <label>Activity Level</label>
+                <select id="activity">
+                    <option value="sedentary">Sedentary (Little to no exercise)</option>
+                    <option value="light" selected>Light (1-3 days/week)</option>
+                    <option value="moderate">Moderate (3-5 days/week)</option>
+                    <option value="active">Active (6-7 days/week)</option>
+                    <option value="very_active">Very Active (Athlete level)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Your Goal</label>
+                <select id="goal">
+                    <option value="lose">🔥 Lose Weight</option>
+                    <option value="maintain" selected>⚖️ Maintain Weight</option>
+                    <option value="gain">💪 Gain Weight</option>
+                </select>
+            </div>
+
+            <button class="btn" onclick="analyzeProfile()">
+                🚀 Analyze My Profile
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000';
+        let selectedGender = 'male';
+
+        function selectGender(gender) {
+            selectedGender = gender;
+            document.querySelectorAll('.gender-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.querySelector(`[data-gender="${gender}"]`).classList.add('active');
+        }
+
+        async function analyzeProfile() {
+            const profile = {
+                gender: selectedGender,
+                age: parseInt(document.getElementById('age').value),
+                height: parseFloat(document.getElementById('height').value),
+                weight: parseFloat(document.getElementById('weight').value),
+                activity_level: document.getElementById('activity').value,
+                goal: document.getElementById('goal').value
+            };
+
+            // Validation
+            if (!profile.age || !profile.height || !profile.weight) {
+                alert('Please fill in all fields!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/profile/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(profile)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to analyze profile');
+                }
+
+                const data = await response.json();
+                
+                // Store profile and results in localStorage
+                localStorage.setItem('userProfile', JSON.stringify(profile));
+                localStorage.setItem('profileResults', JSON.stringify(data));
+                
+                // Redirect to dashboard
+                window.location.href = 'dashboard.html';
+                
+            } catch (error) {
+                console.error(error);
+                alert('Error analyzing profile. Make sure the backend is running at ' + API_URL);
+            }
+        }
+    </script>
+</body>
+</html>

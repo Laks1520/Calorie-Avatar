@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calorie Avatar - Smart Nutrition Advisor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeIn 1s;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: slideUp 0.8s;
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .profile-section {
+            grid-column: 1 / 2;
+        }
+
+        .avatar-section {
+            grid-column: 2 / 2;
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .avatar-section h2 {
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .gender-select {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .gender-btn {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+        }
+
+        .gender-btn:hover {
+            border-color: #667eea;
+        }
+
+        .gender-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .avatar-canvas {
+            width: 100%;
+            max-width: 300px;
+            height: 400px;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .avatar-body {
+            width: 120px;
+            height: 280px;
+            margin: 0 auto;
+            position: relative;
+            transition: all 0.5s;
+        }
+
+        .avatar-head {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #ffdbac;
+            margin: 0 auto 10px;
+            position: relative;
+            border: 3px solid #333;
+        }
+
+        .avatar-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .avatar-eyes {
+            display: flex;
+            justify-content: space-around;
+            padding: 25px 20px 0;
+        }
+
+        .eye {
+            width: 12px;
+            height: 12px;
+            background: #333;
+            border-radius: 50%;
+        }
+
+        .avatar-mouth {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 15px;
+            border: 3px solid #333;
+            border-top: none;
+            border-radius: 0 0 30px 30px;
+        }
+
+        .avatar-mouth.happy {
+            border-radius: 0 0 30px 30px;
+        }
+
+        .avatar-mouth.concerned {
+            border-radius: 30px 30px 0 0;
+            border-top: 3px solid #333;
+            border-bottom: none;
+        }
+
+        .avatar-torso {
+            width: 100%;
+            height: 140px;
+            background: #4a90e2;
+            border-radius: 20px 20px 10px 10px;
+            position: relative;
+            border: 3px solid #333;
+        }
+
+        .avatar-arms {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+        }
+
+        .arm {
+            width: 25px;
+            height: 80px;
+            background: #ffdbac;
+            border: 3px solid #333;
+            border-radius: 15px;
+            position: absolute;
+        }
+
+        .arm.left {
+            left: -28px;
+        }
+
+        .arm.right {
+            right: -28px;
+        }
+
+        .avatar-legs {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 5px;
+        }
+
+        .leg {
+            width: 35px;
+            height: 100px;
+            background: #2c5aa0;
+            border: 3px solid #333;
+            border-radius: 10px 10px 15px 15px;
+        }
+
+        .avatar-status {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+        }
+
+        .results-card {
+            grid-column: 1 / -1;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .upload-section {
+            text-align: center;
+            padding: 30px;
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-section:hover {
+            background: #f8f9ff;
+            border-color: #764ba2;
+        }
+
+        .food-results {
+            margin-top: 20px;
+        }
+
+        .food-item {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .food-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .food-name {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #667eea;
+            text-transform: capitalize;
+        }
+
+        .food-nutrition {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .nutrition-item {
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .nutrition-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .nutrition-label {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .swap-card {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .swap-title {
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 5px;
+        }
+
+        .swap-reason {
+            font-size: 0.9em;
+            color: #856404;
+        }
+
+        .activity-list {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+        }
+
+        .activity-item {
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .recommendations {
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 15px;
+        }
+
+        .recommendations ul {
+            list-style-position: inside;
+            color: #2e7d32;
+        }
+
+        .recommendations li {
+            padding: 8px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 968px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+            .avatar-section, .profile-section, .results-card {
+                grid-column: 1 / -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏋️ Calorie Avatar</h1>
+            <p>Your AI-Powered Personal Nutrition & Body Transformation Advisor</p>
+        </div>
+
+        <div class="grid-layout">
+            <!-- Profile Section -->
+            <div class="card profile-section">
+                <h2>📋 Your Profile</h2>
+                
+                <div class="form-group">
+                    <label>Gender</label>
+                    <div class="gender-select">
+                        <button class="gender-btn active" data-gender="male" onclick="selectGender('male')">
+                            👨 Male
+                        </button>
+                        <button class="gender-btn" data-gender="female" onclick="selectGender('female')">
+                            👩 Female
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Age (years)</label>
+                    <input type="number" id="age" min="15" max="100" value="25" placeholder="e.g., 25">
+                </div>
+
+                <div class="form-group">
+                    <label>Height (cm)</label>
+                    <input type="number" id="height" min="120" max="250" value="170" placeholder="e.g., 170">
+                </div>
+
+                <div class="form-group">
+                    <label>Weight (kg)</label>
+                    <input type="number" id="weight" min="30" max="200" value="70" placeholder="e.g., 70">
+                </div>
+
+                <div class="form-group">
+                    <label>Activity Level</label>
+                    <select id="activity">
+                        <option value="sedentary">Sedentary (Little to no exercise)</option>
+                        <option value="light" selected>Light (1-3 days/week)</option>
+                        <option value="moderate">Moderate (3-5 days/week)</option>
+                        <option value="active">Active (6-7 days/week)</option>
+                        <option value="very_active">Very Active (Athlete)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Goal</label>
+                    <select id="goal">
+                        <option value="lose">Lose Weight</option>
+                        <option value="maintain" selected>Maintain Weight</option>
+                        <option value="gain">Gain Weight</option>
+                    </select>
+                </div>
+
+                <button class="btn" onclick="analyzeProfile()">🔍 Analyze My Profile</button>
+            </div>
+
+            <!-- Avatar Section -->
+            <div class="card avatar-section">
+                <h2>👤 Your Avatar</h2>
+                <div class="avatar-canvas">
+                    <div class="avatar-body" id="avatarBody">
+                        <div class="avatar-head">
+                            <div class="avatar-face">
+                                <div class="avatar-eyes">
+                                    <div class="eye"></div>
+                                    <div class="eye"></div>
+                                </div>
+                                <div class="avatar-mouth happy" id="avatarMouth"></div>
+                            </div>
+                        </div>
+                        <div class="avatar-torso" id="avatarTorso">
+                            <div class="avatar-arms">
+                                <div class="arm left"></div>
+                                <div class="arm right"></div>
+                            </div>
+                        </div>
+                        <div class="avatar-legs">
+                            <div class="leg"></div>
+                            <div class="leg"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="avatar-status" id="avatarStatus">
+                    <h3 id="avatarMessage">Set up your profile to see your avatar!</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Results -->
+        <div class="card results-card hidden" id="profileResults">
+            <h2>📊 Your Health Analysis</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number" id="bmiValue">--</div>
+                    <div class="stat-label">BMI</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="idealWeight">--</div>
+                    <div class="stat-label">Ideal Weight (kg)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="targetCalories">--</div>
+                    <div class="stat-label">Daily Calories</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="bmrValue">--</div>
+                    <div class="stat-label">BMR</div>
+                </div>
+            </div>
+
+            <div class="recommendations" id="recommendations"></div>
+
+            <div class="activity-list">
+                <h3>🏃 Recommended Activities</h3>
+                <div id="activityList"></div>
+            </div>
+        </div>
+
+        <!-- Food Analysis -->
+        <div class="card results-card">
+            <h2>🍽️ Food Analysis</h2>
+            
+            <div class="upload-section" onclick="document.getElementById('fileInput').click()">
+                <div style="font-size: 3em; margin-bottom: 10px;">📸</div>
+                <h3>Upload Your Meal Photo</h3>
+                <p style="margin-top: 10px; color: #888;">Click or drag and drop</p>
+                <input type="file" id="fileInput" style="display: none;" accept="image/*" onchange="handleFileSelect(event)">
+            </div>
+
+            <div id="foodPreview" class="hidden" style="text-align: center; margin: 20px 0;">
+                <img id="previewImage" style="max-width: 100%; max-height: 300px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.2);">
+                <br><br>
+                <button class="btn" onclick="analyzeFood()" style="max-width: 300px;">🔍 Analyze Food</button>
+            </div>
+
+            <div id="foodResults" class="food-results hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000';
+        let selectedGender = 'male';
+        let selectedFile = null;
+        let userProfile = null;
+
+        function selectGender(gender) {
+            selectedGender = gender;
+            document.querySelectorAll('.gender-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-gender="${gender}"]`).classList.add('active');
+        }
+
+        async function analyzeProfile() {
+            const profile = {
+                gender: selectedGender,
+                age: parseInt(document.getElementById('age').value),
+                height: parseFloat(document.getElementById('height').value),
+                weight: parseFloat(document.getElementById('weight').value),
+                activity_level: document.getElementById('activity').value,
+                goal: document.getElementById('goal').value
+            };
+
+            userProfile = profile;
+
+            try {
+                const response = await fetch(`${API_URL}/profile/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(profile)
+                });
+
+                const data = await response.json();
+                displayProfileResults(data);
+                updateAvatar(data);
+            } catch (error) {
+                alert('Error analyzing profile. Make sure backend is running!');
+                console.error(error);
+            }
+        }
+
+        function displayProfileResults(data) {
+            document.getElementById('profileResults').classList.remove('hidden');
+            
+            document.getElementById('bmiValue').textContent = data.bmi.bmi;
+            document.getElementById('idealWeight').textContent = data.ideal_weight.ideal;
+            document.getElementById('targetCalories').textContent = data.energy.target_calories;
+            document.getElementById('bmrValue').textContent = data.energy.bmr;
+
+            const recDiv = document.getElementById('recommendations');
+            recDiv.innerHTML = `
+                <h3>💡 Personalized Recommendations</h3>
+                <p><strong>BMI Category:</strong> ${data.bmi.category} (${data.bmi.health_risk})</p>
+                <p><strong>Goal Timeline:</strong> ${data.energy.timeline}</p>
+                <ul>
+                    ${data.recommendations.map(r => `<li>${r}</li>`).join('')}
+                </ul>
+            `;
+
+            const actDiv = document.getElementById('activityList');
+            actDiv.innerHTML = data.activities.map(act => `
+                <div class="activity-item">
+                    <div>
+                        <strong>${act.activity}</strong><br>
+                        <small>${act.frequency}</small>
+                    </div>
+                    <div style="text-align: right;">
+                        <strong>${act.calories} cal</strong>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateAvatar(data) {
+            const avatar = data.avatar;
+            const body = document.getElementById('avatarBody');
+            const torso = document.getElementById('avatarTorso');
+            const mouth = document.getElementById('avatarMouth');
+
+            // Update body type
+            const bodyScales = {
+                'slim': 0.85,
+                'fit': 1.0,
+                'average': 1.15,
+                'heavy': 1.3
+            };
+            
+            const scale = bodyScales[avatar.body_type] || 1.0;
+            body.style.transform = `scaleX(${scale})`;
+
+            // Update mood
+            mouth.className = 'avatar-mouth';
+            if (avatar.mood === 'happy') {
+                mouth.classList.add('happy');
+            } else if (avatar.mood === 'concerned') {
+                mouth.classList.add('concerned');
+            }
+
+            // Update status message
+            document.getElementById('avatarMessage').textContent = avatar.message;
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('previewImage').src = e.target.result;
+                    document.getElementById('foodPreview').classList.remove('hidden');
+                    document.getElementById('foodResults').classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function analyzeFood() {
+            if (!selectedFile) return;
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            try {
+                const response = await fetch(`${API_URL}/predict`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                displayFoodResults(data);
+            } catch (error) {
+                alert('Error analyzing food. Make sure backend is running!');
+                console.error(error);
+            }
+        }
+
+        function displayFoodResults(data) {
+            const resultsDiv = document.getElementById('foodResults');
+            resultsDiv.classList.remove('hidden');
+
+            if (!data.predictions || data.predictions.length === 0) {
+                resultsDiv.innerHTML = '<p>No food detected. Try a clearer image!</p>';
+                return;
+            }
+
+            let html = `
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-number">${data.total_nutrition.calories}</div>
+                        <div class="stat-label">Total Calories</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">${data.total_nutrition.protein}g</div>
+                        <div class="stat-label">Protein</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">${data.total_nutrition.carbs}g</div>
+                        <div class="stat-label">Carbs</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number">${data.total_nutrition.fat}g</div>
+                        <div class="stat-label">Fat</div>
+                    </div>
+                </div>
+            `;
+
+            data.predictions.forEach(item => {
+                html += `
+                    <div class="food-item">
+                        <div class="food-header">
+                            <div class="food-name">${item.food}</div>
+                            <div style="color: #888;">${Math.round(item.confidence * 100)}% confident</div>
+                        </div>
+                        
+                        <div class="food-nutrition">
+                            <div class="nutrition-item">
+                                <div class="nutrition-value">${item.nutrition.calories}</div>
+                                <div class="nutrition-label">Calories</div>
+                            </div>
+                            <div class="nutrition-item">
+                                <div class="nutrition-value">${item.nutrition.protein}g</div>
+                                <div class="nutrition-label">Protein</div>
+                            </div>
+                            <div class="nutrition-item">
+                                <div class="nutrition-value">${item.nutrition.carbs}g</div>
+                                <div class="nutrition-label">Carbs</div>
+                            </div>
+                            <div class="nutrition-item">
+                                <div class="nutrition-value">${item.nutrition.fat}g</div>
+                                <div class="nutrition-label">Fat</div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                            Serving: ${item.nutrition.serving}
+                        </div>
+
+                        ${item.swap ? `
+                            <div class="swap-card">
+                                <div class="swap-title">💡 Healthier Swap: ${item.swap.swap}</div>
+                                <div class="swap-reason">${item.swap.reason}</div>
+                                <div style="margin-top: 5px; font-weight: 600;">
+                                    Save ${item.swap.calorie_save} calories! ${item.swap.health_benefit}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+
+            resultsDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
